@@ -6,17 +6,14 @@ require 'gli'
 require 'highline'
 require 'pathname'
 
-require 'cloudapp'
-require 'cloudapp/config'
-require 'cloudapp/presenters/drop_list_presenter'
-require 'cloudapp/presenters/drop_presenter'
+require 'cloudapp/cli'
 
 
 extend Forwardable
 def_delegator 'HighLine.new', :color
 
 def config
-  CloudApp::Config.new
+  CloudApp::CLI::Config.new
 end
 
 def account
@@ -101,7 +98,7 @@ end
 include GLI
 
 program_desc 'All the pleasures of CloudApp now at your terminal'
-version CloudApp::VERSION
+version CloudApp::CLI::VERSION
 
 desc 'Output format (default: pretty for tty, csv otherwise)'
 arg_name 'csv,pretty'
@@ -129,7 +126,7 @@ command [:list, :ls] do |c|
     drops  = account.drops filter: filter, limit: count
 
     if drops.authorized?
-      puts CloudApp::DropListPresenter.new(drops).present
+      puts CloudApp::CLI::DropListPresenter.new(drops).present
     else
       print_bad_token
     end
@@ -145,7 +142,7 @@ command :details do |c|
     hrefs.each do |href|
       drop = account.drop_at href
       if drop.authorized?
-        puts CloudApp::DropPresenter.new(drop).present
+        puts CloudApp::CLI::DropPresenter.new(drop).present
       else
         print_bad_token
       end
