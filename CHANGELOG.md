@@ -1,8 +1,9 @@
 # Change Log
 
-Below is a complete listing of changes for each revision of `cloudapp-cli`.
+Below is a listing of the high-level changes for each revision of
+`cloudapp-cli`.
 
-## 2.0.0.beta.1
+## In Progress
 
  - Extract CLI from [cloudapp][] gem.
 
