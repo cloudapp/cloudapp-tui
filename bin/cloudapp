@@ -1,0 +1,179 @@
+#!/usr/bin/env ruby
+
+require 'cloudapp'
+require 'cloudapp/cli'
+require 'highline'
+require 'ffi-ncurses'
+
+include FFI::NCurses
+
+def config
+  CloudApp::CLI::Config.new
+end
+
+def account
+  require_credentials
+  CloudApp::Account.using_token config.token
+end
+
+def require_credentials
+  return unless config.token.nil?
+
+  $stdout.puts 'Sign into your CloudApp account.'
+
+  email        = HighLine.new.ask('Email: ')
+  password     = HighLine.new.ask('Password: ') {|q| q.echo = false }
+  config.token = CloudApp::Token.for_account email, password
+end
+
+def log(*args)
+  File.open('log/curses.txt', 'ab+') do |file|
+    file.puts args.inspect
+  end
+end
+
+
+def copy(link)
+  IO.popen('pbcopy', 'w') {|f| f << link }
+end
+
+def draw_drops_window(drops)
+  # 1 column wider than necessary to prevent wrapping also accounting for
+  # selection indicator.
+  width  = drops.map {|drop| drop.name.size }.max + 3
+  height = drops.size * 3
+
+  wrap = newwin height + 2, width + 2, 0, 0
+  box wrap, 0, 0
+  wrefresh wrap
+
+  win = newwin height, width, 1, 1
+
+  drops.each do |drop|
+    drop_lines(drop).each do |line|
+      waddstr win, '  '
+      waddstr win, line
+      waddstr win, "\n"
+    end
+    waddstr win, "\n"
+  end
+  wrefresh win
+
+  [ win, wrap ]
+end
+
+def drop_lines(drop)
+  details = "  #{ pretty_date(drop.created) } (#{ drop.views })"
+  [ drop.name, details ]
+end
+
+def select_drop(win, selected_drop, drops)
+  # Stay within bounds.
+  selected_drop = [ 0,
+                    [ drops.size - 1, selected_drop ].min
+                  ].max
+
+  line = selected_drop * 3
+  mvwaddch win, line, 0, ?>.ord
+  wmove win, line, 0
+
+  selected_drop
+end
+
+def pretty_date(date)
+  diff = (Time.now - date.to_time).to_i
+  case diff
+    when 0               then 'just now'
+    when 1               then 'a second ago'
+    when 2..59           then diff.to_s+' seconds ago'
+    when 60..119         then 'a minute ago' #120 = 2 minutes
+    when 120..3540       then (diff/60).to_i.to_s+' minutes ago'
+    when 3541..7100      then 'an hour ago' # 3600 = 1 hour
+    when 7101..82800     then ((diff+99)/3600).to_i.to_s+' hours ago'
+    when 82801..172000   then 'a day ago' # 86400 = 1 day
+    when 172001..518400  then ((diff+800)/(60*60*24)).to_i.to_s+' days ago'
+    when 518400..1036800 then 'a week ago'
+    else ((diff+180000)/(60*60*24*7)).to_i.to_s+' weeks ago'
+  end
+end
+
+def popup_window(parent, text)
+  text_width  = text.lines.map{ |x| x.size }.max
+  text_height = text.lines.to_a.size
+  rows, cols  = getmaxyx parent
+  width       = text_width + 4
+  height      = text_height + 4
+  col         = (cols - width)  / 2 - 1
+  row         = (rows - height) / 2 - 1
+
+  space = derwin parent, height + 2, width + 2, row, col
+  wclear space
+
+  frame = derwin space, height, width, 1, 1
+  box frame, 0, 0
+
+  win = derwin frame, text_height, text_width, 2, 2
+  wmove win, 0, 0
+  waddstr win, text
+
+  wrefresh space
+  wrefresh frame
+  wrefresh win
+
+  ch = wgetch win
+  flushinp
+  ungetch ch
+
+  delwin win
+  delwin frame
+  delwin space
+end
+
+
+drops = account.drops(limit: 5)
+
+begin
+  initscr
+  noecho
+
+  win, wrap = draw_drops_window drops
+  selected_drop = select_drop win, 0, drops
+
+  while (c = wgetch(win)) != ?q.ord
+    case c
+    when ?j.ord
+      selected_drop += 1
+    when ?k.ord
+      selected_drop -= 1
+
+    when ?c.ord, KEY_RETURN
+      link = drops[selected_drop].share_url
+      copy link
+      popup_window win, 'Copied share link.'
+    when ?C.ord
+      link = drops[selected_drop].embed_url
+      copy link
+      popup_window win, 'Copied embed link.'
+    when ?d.ord
+      link = drops[selected_drop].download_url
+      copy link
+      popup_window win, 'Copied download link.'
+    when ?t.ord
+      link = drops[selected_drop].thumbnail_url
+      copy link
+      popup_window win, 'Copied thumbnail link.'
+    end
+
+    delwin win
+    win, wrap = draw_drops_window drops
+    selected_drop = select_drop win, selected_drop, drops
+  end
+
+  delwin win
+
+rescue => e
+  endwin
+  raise
+ensure
+  endwin
+end

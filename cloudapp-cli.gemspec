@@ -43,9 +43,13 @@ Gem::Specification.new do |s|
 
   ## List your runtime dependencies here. Runtime dependencies are those
   ## that are needed for an end user to actually USE your code.
-  s.add_dependency 'cloudapp'
-  s.add_dependency 'gli'
+  s.add_dependency 'cloudapp', '~> 2.0.0.beta.1'
+  s.add_dependency 'ffi-ncurses'
   s.add_dependency 'highline'
+
+  # Needed for Highline echo=false support as per
+  # https://github.com/JEG2/highline/issues/39
+  s.add_dependency 'ruby-termios'
 
   ## List your development dependencies here. Development dependencies are
   ## those that are only needed during development
