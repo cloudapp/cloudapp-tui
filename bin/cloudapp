@@ -27,6 +27,7 @@ def require_credentials
 end
 
 def log(*args)
+  return unless File.exists?('log/curses.txt')
   File.open('log/curses.txt', 'ab+') do |file|
     file.puts args.inspect
   end
