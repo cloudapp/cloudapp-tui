@@ -134,7 +134,6 @@ def popup_window(parent, text)
     yield
   else
     ch = wgetch win
-    log 'popup', ch
     flushinp
     ungetch ch
   end
@@ -155,7 +154,6 @@ t   = Copy thumbnail link
 HELP
   popup_window win, help
   ch = wgetch win
-  log 'show_help', ch
   ungetch ch unless ch == ??.ord
 end
 
@@ -174,7 +172,6 @@ begin
   selected_drop = select_drop win, 0, drops
 
   while c = wgetch(win)
-    log 'wgetch', c
     case c
     when ?q.ord
       break
@@ -217,8 +214,6 @@ begin
       link = drops[selected_drop].thumbnail_url
       copy link
       popup_window win, 'Copied thumbnail link.'
-    else
-      log 'unknown key', c
     end
 
     delwin win
