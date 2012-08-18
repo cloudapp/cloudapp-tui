@@ -12,7 +12,6 @@ def config
 end
 
 def account
-  require_credentials
   CloudApp::Account.using_token config.token
 end
 
@@ -157,6 +156,7 @@ HELP
   ungetch ch unless ch == ??.ord
 end
 
+require_credentials
 
 begin
   initscr
