@@ -42,12 +42,14 @@ def draw_drops_window(drops)
   # selection indicator.
   width  = drops.map {|drop| drop.name.size }.max + 3
   height = drops.size * 3
+  col    = (COLS() - width)  / 2 - 1
+  row    = (LINES() - height) / 2 - 1
 
-  wrap = newwin height + 2, width + 2, 0, 0
+  wrap = newwin height + 2, width + 2, row, col
   box wrap, 0, 0
   wrefresh wrap
 
-  win = newwin height, width, 1, 1
+  win = derwin wrap, height, width, 1, 1
 
   drops.each do |drop|
     drop_lines(drop).each do |line|
@@ -58,6 +60,11 @@ def draw_drops_window(drops)
     waddstr win, "\n"
   end
   wrefresh win
+
+  # Enabling the keypad allows the use of the arrow keys. I don't know why. With
+  # the keypad either enabled or disabled the the would-be arrow keys on some
+  # keyboard keypads don't work as arrow keys (8=up, 2=down, etc).
+  keypad win, true
 
   [ win, wrap ]
 end
@@ -100,51 +107,98 @@ end
 def popup_window(parent, text)
   text_width  = text.lines.map{ |x| x.size }.max
   text_height = text.lines.to_a.size
-  rows, cols  = getmaxyx parent
+  rows, cols  = !parent.nil? ? getmaxyx(parent) : [ LINES(), COLS() ]
   width       = text_width + 4
   height      = text_height + 4
-  col         = (cols - width)  / 2 - 1
-  row         = (rows - height) / 2 - 1
+  col         = (cols - width)  / 2
+  row         = (rows - height) / 2
 
-  space = derwin parent, height + 2, width + 2, row, col
-  wclear space
+  if parent
+    frame = derwin parent, height, width, row, col
+  else
+    frame = newwin height, width, row, col
+  end
 
-  frame = derwin space, height, width, 1, 1
+  werase frame
   box frame, 0, 0
 
   win = derwin frame, text_height, text_width, 2, 2
   wmove win, 0, 0
   waddstr win, text
 
-  wrefresh space
   wrefresh frame
   wrefresh win
 
-  ch = wgetch win
-  flushinp
-  ungetch ch
+  if block_given?
+    yield
+  else
+    ch = wgetch win
+    log 'popup', ch
+    flushinp
+    ungetch ch
+  end
 
   delwin win
   delwin frame
-  delwin space
 end
 
+def show_help(win)
+  help = <<-HELP.chomp
+j/k = Move down/up
+d/p = Next/previous page
 
-drops = account.drops(limit: 5)
+c   = Copy share link
+C   = Copy embed link
+D   = Copy download link
+t   = Copy thumbnail link
+HELP
+  popup_window win, help
+  ch = wgetch win
+  log 'show_help', ch
+  ungetch ch unless ch == ??.ord
+end
+
 
 begin
   initscr
   noecho
+  curs_set 0
 
-  win, wrap = draw_drops_window drops
+  drops = nil
+  popup_window nil, 'Loading...' do
+    drops = account.drops limit: 10
+  end
+
+  win, wrap     = draw_drops_window drops
   selected_drop = select_drop win, 0, drops
 
-  while (c = wgetch(win)) != ?q.ord
+  while c = wgetch(win)
+    log 'wgetch', c
     case c
-    when ?j.ord
+    when ?q.ord
+      break
+    when ??.ord
+      show_help win
+
+    when ?j.ord, KEY_DOWN
       selected_drop += 1
-    when ?k.ord
+    when ?k.ord, KEY_UP
       selected_drop -= 1
+
+    when ?d.ord
+      next unless drops.link('next') { nil }
+      popup_window win, 'Loading...' do
+        drops = account.drops href: drops.link('next').href
+      end
+      wclear   wrap
+      wrefresh wrap
+    when ?p.ord
+      next unless drops.link('previous') { nil }
+      popup_window win, 'Loading...' do
+        drops = account.drops href: drops.link('previous').href
+      end
+      wclear   wrap
+      wrefresh wrap
 
     when ?c.ord, KEY_RETURN
       link = drops[selected_drop].share_url
@@ -162,14 +216,18 @@ begin
       link = drops[selected_drop].thumbnail_url
       copy link
       popup_window win, 'Copied thumbnail link.'
+    else
+      log 'unknown key', c
     end
 
     delwin win
-    win, wrap = draw_drops_window drops
+    delwin wrap
+    win, wrap     = draw_drops_window drops
     selected_drop = select_drop win, selected_drop, drops
   end
 
   delwin win
+  delwin wrap
 
 rescue => e
   endwin
