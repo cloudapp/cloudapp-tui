@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    cloudapp-cli (1.0.0.beta.4)
+    cloudapp-cli (1.0.0.beta.5)
       clipboard
       cloudapp (~> 2.0.0.beta.1)
       ffi-ncurses
