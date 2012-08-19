@@ -2,6 +2,7 @@
 
 require 'cloudapp'
 require 'cloudapp/cli'
+require 'clipboard'
 require 'highline'
 require 'ffi-ncurses'
 
@@ -32,10 +33,6 @@ def log(*args)
   end
 end
 
-
-def copy(link)
-  IO.popen('pbcopy', 'w') {|f| f << link }
-end
 
 def draw_drops_window(drops)
   # 1 column wider than necessary to prevent wrapping also accounting for
@@ -200,19 +197,19 @@ begin
 
     when ?c.ord, KEY_RETURN
       link = drops[selected_drop].share_url
-      copy link
+      Clipboard.copy link
       popup_window win, 'Copied share link.'
     when ?C.ord
       link = drops[selected_drop].embed_url
-      copy link
+      Clipboard.copy link
       popup_window win, 'Copied embed link.'
     when ?D.ord
       link = drops[selected_drop].download_url
-      copy link
+      Clipboard.copy link
       popup_window win, 'Copied download link.'
     when ?t.ord
       link = drops[selected_drop].thumbnail_url
-      copy link
+      Clipboard.copy link
       popup_window win, 'Copied thumbnail link.'
     end
 
