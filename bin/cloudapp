@@ -206,7 +206,7 @@ begin
       link = drops[selected_drop].embed_url
       copy link
       popup_window win, 'Copied embed link.'
-    when ?d.ord
+    when ?D.ord
       link = drops[selected_drop].download_url
       copy link
       popup_window win, 'Copied download link.'
