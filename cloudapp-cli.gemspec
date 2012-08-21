@@ -43,7 +43,7 @@ Gem::Specification.new do |s|
 
   ## List your runtime dependencies here. Runtime dependencies are those
   ## that are needed for an end user to actually USE your code.
-  s.add_dependency 'cloudapp', '~> 2.0.0.beta.1'
+  s.add_dependency 'cloudapp', '~> 2.0.0.beta.3'
   s.add_dependency 'clipboard'
   s.add_dependency 'ffi-ncurses'
   s.add_dependency 'highline'
