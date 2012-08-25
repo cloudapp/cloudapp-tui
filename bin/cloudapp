@@ -194,6 +194,14 @@ begin
       end
       wclear   wrap
       wrefresh wrap
+    when ?P.ord
+      popup_window win, 'Jump to first page not yet implemented.'
+      # next unless drops.has_link?('first')
+      # popup_window win, 'Loading...' do
+      #   drops = drops.follow('first')
+      # end
+      wclear   wrap
+      wrefresh wrap
 
     when ?c.ord, KEY_RETURN
       link = drops[selected_drop].share_url
