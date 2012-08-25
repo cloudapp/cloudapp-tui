@@ -13,7 +13,7 @@ def config
 end
 
 def account
-  CloudApp::Account.using_token config.token
+  CloudApp::Service.using_token config.token
 end
 
 def require_credentials
@@ -23,7 +23,7 @@ def require_credentials
 
   email        = HighLine.new.ask('Email: ')
   password     = HighLine.new.ask('Password: ') {|q| q.echo = false }
-  config.token = CloudApp::Token.for_account email, password
+  config.token = CloudApp::Service.token_for_account email, password
 end
 
 def log(*args)
@@ -181,16 +181,16 @@ begin
       selected_drop -= 1
 
     when ?d.ord
-      next unless drops.link('next') { nil }
+      next unless drops.has_link?('next')
       popup_window win, 'Loading...' do
-        drops = account.drops href: drops.link('next').href
+        drops = drops.follow('next')
       end
       wclear   wrap
       wrefresh wrap
     when ?p.ord
-      next unless drops.link('previous') { nil }
+      next unless drops.has_link?('previous')
       popup_window win, 'Loading...' do
-        drops = account.drops href: drops.link('previous').href
+        drops = drops.follow('previous')
       end
       wclear   wrap
       wrefresh wrap

@@ -13,7 +13,7 @@ GEM
   specs:
     addressable (2.2.8)
     clipboard (1.0.1)
-    cloudapp (2.0.0.beta.3)
+    cloudapp (2.0.0.beta.4)
       leadlight (~> 0.0.7)
       typhoeus (~> 0.3.3)
     diff-lcs (1.1.3)
