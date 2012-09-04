@@ -180,7 +180,7 @@ begin
     when ?k.ord, KEY_UP
       selected_drop -= 1
 
-    when ?d.ord
+    when ?n.ord
       next unless drops.has_link?('next')
       popup_window win, 'Loading...' do
         drops = drops.follow('next')
