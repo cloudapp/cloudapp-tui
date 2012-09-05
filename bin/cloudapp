@@ -127,7 +127,7 @@ def popup_window(parent, text)
   wrefresh win
 
   if block_given?
-    yield
+    block_value = yield win
   else
     ch = wgetch win
     flushinp
@@ -136,6 +136,7 @@ def popup_window(parent, text)
 
   delwin win
   delwin frame
+  block_value
 end
 
 def show_help(win)
@@ -153,6 +154,43 @@ HELP
   ungetch ch unless ch == ??.ord
 end
 
+def show_filter(win, selected)
+  message = <<-FILTER.chomp
+  Active
+  Trash
+  All
+FILTER
+  indexed_filters = %w( active trash all )
+
+  popup_window win, message do |popup|
+    selected_line = indexed_filters.index(selected) || 0
+    mvwaddch popup, selected_line, 0, ?>.ord
+    wmove popup, selected_line, 0
+
+    while ch = wgetch(popup)
+      case ch
+      when ?j.ord, KEY_DOWN then selected_line += 1
+      when ?k.ord, KEY_UP   then selected_line -= 1
+      else
+        ungetch ch unless ch == ?f.ord || ch == KEY_RETURN
+        break
+      end
+
+      # Stay within bounds.
+      selected_line = [ 0, [ 2, selected_line ].min ].max
+
+      # Clear all selectors
+      (0..2).each do |i|
+        mvwaddch popup, i, 0, ?\ .ord  # <-- Ha!
+      end
+
+      mvwaddch popup, selected_line, 0, ?>.ord
+      wmove popup, selected_line, 0
+    end
+    indexed_filters[selected_line]
+  end
+end
+
 require_credentials
 
 begin
@@ -160,7 +198,8 @@ begin
   noecho
   curs_set 0
 
-  drops = nil
+  drops  = nil
+  filter = nil
   popup_window nil, 'Loading...' do
     drops = account.drops limit: 10
   end
@@ -170,16 +209,12 @@ begin
 
   while c = wgetch(win)
     case c
-    when ?q.ord
-      break
-    when ??.ord
-      show_help win
 
-    when ?j.ord, KEY_DOWN
-      selected_drop += 1
-    when ?k.ord, KEY_UP
-      selected_drop -= 1
+    # Drop selection
+    when ?j.ord, KEY_DOWN then selected_drop += 1
+    when ?k.ord, KEY_UP   then selected_drop -= 1
 
+    # Pagination
     when ?n.ord
       next unless drops.has_link?('next')
       popup_window win, 'Loading...' do
@@ -202,6 +237,7 @@ begin
       wclear   wrap
       wrefresh wrap
 
+    # Copy drop links
     when ?c.ord, KEY_RETURN
       link = drops[selected_drop].share_url
       Clipboard.copy link
@@ -218,6 +254,16 @@ begin
       link = drops[selected_drop].thumbnail_url
       Clipboard.copy link
       popup_window win, 'Copied thumbnail link.'
+
+    # Filter drops
+    when ?f.ord
+      filter = show_filter win, filter
+      popup_window nil, 'Loading...' do
+        drops = account.drops limit: 10, filter: filter
+      end
+
+    when ??.ord then show_help win
+    when ?q.ord then break
     end
 
     delwin win
