@@ -1,283 +1,138 @@
 #!/usr/bin/env ruby
+$: << 'lib'
 
 require 'cloudapp'
 require 'cloudapp/cli'
+require 'cloudapp/cli/drops'
+require 'cloudapp/cli/drops_renderer'
 require 'clipboard'
 require 'highline'
-require 'ffi-ncurses'
-
-include FFI::NCurses
-
-def config
-  CloudApp::CLI::Config.new
-end
-
-def account
-  CloudApp::Service.using_token config.token
-end
-
-def require_credentials
-  return unless config.token.nil?
-
-  $stdout.puts 'Sign into your CloudApp account.'
-
-  email        = HighLine.new.ask('Email: ')
-  password     = HighLine.new.ask('Password: ') {|q| q.echo = false }
-  config.token = CloudApp::Service.token_for_account email, password
-end
-
-def log(*args)
-  return unless File.exists?('log/curses.txt')
-  File.open('log/curses.txt', 'ab+') do |file|
-    file.puts args.inspect
-  end
-end
 
 
-def draw_drops_window(drops)
-  # 1 column wider than necessary to prevent wrapping also accounting for
-  # selection indicator.
-  width  = drops.map {|drop| drop.name.size }.max + 3
-  height = drops.size * 3
-  col    = (COLS() - width)  / 2 - 1
-  row    = (LINES() - height) / 2 - 1
+module CloudApp
+  module CLI
+    class Thing
+      def log(*args)
+        return unless File.exists?('log/curses.txt')
+        File.open('log/curses.txt', 'ab+') do |file|
+          file.puts args.inspect
+        end
+      end
 
-  wrap = newwin height + 2, width + 2, row, col
-  box wrap, 0, 0
-  wrefresh wrap
+      def config
+        CloudApp::CLI::Config.new
+      end
 
-  win = derwin wrap, height, width, 1, 1
+      def account
+        CloudApp::Service.using_token config.token
+      end
 
-  drops.each do |drop|
-    drop_lines(drop).each do |line|
-      waddstr win, '  '
-      waddstr win, line
-      waddstr win, "\n"
+      def require_credentials
+        return unless config.token.nil?
+
+        $stdout.puts 'Sign into your CloudApp account.'
+
+        email        = HighLine.new.ask('Email: ')
+        password     = HighLine.new.ask('Password: ') {|q| q.echo = false }
+        config.token = CloudApp::Service.token_for_account email, password
+      end
+
+
+      require 'ffi-ncurses'
+      include FFI::NCurses
+
+      def copy(text)
+        status "Copied: #{ text }"
+        Clipboard.copy text
+      end
+
+      def draw
+        content = DropsRenderer.new(@drops).render
+
+        unless @drops_window
+          @drops_window = newwin content.lines.count, 0, 0, 0
+        end
+
+        move_status content.lines.count
+
+        werase  @drops_window
+        waddstr @drops_window, content
+        wmove   @drops_window, @drops.selected_index, 0
+        wnoutrefresh @drops_window
+        doupdate
+      end
+
+      def move_status(lines = 20)
+        unless @status_window
+          @status_window = newwin 1, 0, 0, 0
+          whline @status_window, 0, COLS()
+
+          @status = newwin 1, 0, 0, 0
+        end
+
+        mvwin @status_window, lines, 0
+        mvwin @status, lines + 1, 0
+        wnoutrefresh @status_window
+        wnoutrefresh @status
+      end
+
+      def status(message)
+        werase  @status
+        waddstr @status, message
+        wnoutrefresh @status
+
+        if block_given?
+          doupdate
+          response = yield
+          clear_status
+          response
+        end
+      end
+
+      def clear_status
+        status ''
+      end
+
+      def key(char)
+        case char
+        when ?j then status('Loading...') { @drops = @drops.select_next }
+        when ?k then status('Loading...') { @drops = @drops.select_previous }
+        when ?n then status('Loading...') { @drops = @drops.next_page }
+        when ?p then status('Loading...') { @drops = @drops.previous_page }
+        when ?P then status('Loading...') { @drops = @drops.first_page }
+
+        when ?c then copy @drops.selection.share_url
+        when ?C then copy @drops.selection.embed_url
+        when ?D then copy @drops.selection.download_url
+        when ?t then copy @drops.selection.thumbnail_url
+
+        when ?f then status 'Filtering not implemented.'
+        when ?? then status 'Help not implemented.'
+
+        when ?q then raise SystemExit
+        end
+      end
+
+      def start
+        initscr
+        noecho
+        curs_set 0
+
+        move_status
+        status 'Loading...' do
+          @drops = Drops.new account.drops
+        end
+
+        loop do
+          draw
+          select [$stdin], nil, nil
+          key $stdin.getc
+        end
+      ensure
+        endwin
+      end
     end
-    waddstr win, "\n"
-  end
-  wrefresh win
-
-  # Enabling the keypad allows the use of the arrow keys. I don't know why. With
-  # the keypad either enabled or disabled the the would-be arrow keys on some
-  # keyboard keypads don't work as arrow keys (8=up, 2=down, etc).
-  keypad win, true
-
-  [ win, wrap ]
-end
-
-def drop_lines(drop)
-  details = "  #{ pretty_date(drop.created) } (#{ drop.views })"
-  [ drop.name, details ]
-end
-
-def select_drop(win, selected_drop, drops)
-  # Stay within bounds.
-  selected_drop = [ 0,
-                    [ drops.size - 1, selected_drop ].min
-                  ].max
-
-  line = selected_drop * 3
-  mvwaddch win, line, 0, ?>.ord
-  wmove win, line, 0
-
-  selected_drop
-end
-
-def pretty_date(date)
-  diff = (Time.now - date.to_time).to_i
-  case diff
-    when 0               then 'just now'
-    when 1               then 'a second ago'
-    when 2..59           then diff.to_s+' seconds ago'
-    when 60..119         then 'a minute ago' #120 = 2 minutes
-    when 120..3540       then (diff/60).to_i.to_s+' minutes ago'
-    when 3541..7100      then 'an hour ago' # 3600 = 1 hour
-    when 7101..82800     then ((diff+99)/3600).to_i.to_s+' hours ago'
-    when 82801..172000   then 'a day ago' # 86400 = 1 day
-    when 172001..518400  then ((diff+800)/(60*60*24)).to_i.to_s+' days ago'
-    when 518400..1036800 then 'a week ago'
-    else ((diff+180000)/(60*60*24*7)).to_i.to_s+' weeks ago'
   end
 end
 
-def popup_window(parent, text)
-  text_width  = text.lines.map{ |x| x.size }.max
-  text_height = text.lines.to_a.size
-  rows, cols  = !parent.nil? ? getmaxyx(parent) : [ LINES(), COLS() ]
-  width       = text_width + 4
-  height      = text_height + 4
-  col         = (cols - width)  / 2
-  row         = (rows - height) / 2
-
-  if parent
-    frame = derwin parent, height, width, row, col
-  else
-    frame = newwin height, width, row, col
-  end
-
-  werase frame
-  box frame, 0, 0
-
-  win = derwin frame, text_height, text_width, 2, 2
-  wmove win, 0, 0
-  waddstr win, text
-
-  wrefresh frame
-  wrefresh win
-
-  if block_given?
-    block_value = yield win
-  else
-    ch = wgetch win
-    flushinp
-    ungetch ch
-  end
-
-  delwin win
-  delwin frame
-  block_value
-end
-
-def show_help(win)
-  help = <<-HELP.chomp
-j/k = Move down/up
-d/p = Next/previous page
-
-c   = Copy share link
-C   = Copy embed link
-D   = Copy download link
-t   = Copy thumbnail link
-HELP
-  popup_window win, help
-  ch = wgetch win
-  ungetch ch unless ch == ??.ord
-end
-
-def show_filter(win, selected)
-  message = <<-FILTER.chomp
-  Active
-  Trash
-  All
-FILTER
-  indexed_filters = %w( active trash all )
-
-  popup_window win, message do |popup|
-    selected_line = indexed_filters.index(selected) || 0
-    mvwaddch popup, selected_line, 0, ?>.ord
-    wmove popup, selected_line, 0
-
-    while ch = wgetch(popup)
-      case ch
-      when ?j.ord, KEY_DOWN then selected_line += 1
-      when ?k.ord, KEY_UP   then selected_line -= 1
-      else
-        ungetch ch unless ch == ?f.ord || ch == KEY_RETURN
-        break
-      end
-
-      # Stay within bounds.
-      selected_line = [ 0, [ 2, selected_line ].min ].max
-
-      # Clear all selectors
-      (0..2).each do |i|
-        mvwaddch popup, i, 0, ?\ .ord  # <-- Ha!
-      end
-
-      mvwaddch popup, selected_line, 0, ?>.ord
-      wmove popup, selected_line, 0
-    end
-    indexed_filters[selected_line]
-  end
-end
-
-require_credentials
-
-begin
-  initscr
-  noecho
-  curs_set 0
-
-  drops  = nil
-  filter = nil
-  popup_window nil, 'Loading...' do
-    drops = account.drops limit: 10
-  end
-
-  win, wrap     = draw_drops_window drops
-  selected_drop = select_drop win, 0, drops
-
-  while c = wgetch(win)
-    case c
-
-    # Drop selection
-    when ?j.ord, KEY_DOWN then selected_drop += 1
-    when ?k.ord, KEY_UP   then selected_drop -= 1
-
-    # Pagination
-    when ?n.ord
-      next unless drops.has_link?('next')
-      popup_window win, 'Loading...' do
-        drops = drops.follow('next')
-      end
-      wclear   wrap
-      wrefresh wrap
-    when ?p.ord
-      next unless drops.has_link?('previous')
-      popup_window win, 'Loading...' do
-        drops = drops.follow('previous')
-      end
-      wclear   wrap
-      wrefresh wrap
-    when ?P.ord
-      next unless drops.has_link?('first')
-      popup_window win, 'Loading...' do
-        drops = drops.follow('first')
-      end
-      wclear   wrap
-      wrefresh wrap
-
-    # Copy drop links
-    when ?c.ord, KEY_RETURN
-      link = drops[selected_drop].share_url
-      Clipboard.copy link
-      popup_window win, 'Copied share link.'
-    when ?C.ord
-      link = drops[selected_drop].embed_url
-      Clipboard.copy link
-      popup_window win, 'Copied embed link.'
-    when ?D.ord
-      link = drops[selected_drop].download_url
-      Clipboard.copy link
-      popup_window win, 'Copied download link.'
-    when ?t.ord
-      link = drops[selected_drop].thumbnail_url
-      Clipboard.copy link
-      popup_window win, 'Copied thumbnail link.'
-
-    # Filter drops
-    when ?f.ord
-      filter = show_filter win, filter
-      popup_window nil, 'Loading...' do
-        drops = account.drops limit: 10, filter: filter
-      end
-
-    when ??.ord then show_help win
-    when ?q.ord then break
-    end
-
-    delwin win
-    delwin wrap
-    win, wrap     = draw_drops_window drops
-    selected_drop = select_drop win, selected_drop, drops
-  end
-
-  delwin win
-  delwin wrap
-
-rescue => e
-  endwin
-  raise
-ensure
-  endwin
-end
+CloudApp::CLI::Thing.new.start
