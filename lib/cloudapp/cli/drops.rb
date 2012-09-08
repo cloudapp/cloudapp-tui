@@ -1,7 +1,7 @@
 require 'forwardable'
 
 module CloudApp
-  module CLI
+  class CLI
     class Drops
       include Enumerable
       extend  Forwardable

@@ -3,7 +3,7 @@ require 'singleton'
 require 'yaml'
 
 module CloudApp
-  module CLI
+  class CLI
     class Config
       def initialize(path = File.expand_path('~/.cloudapprc'))
         @path   = path
