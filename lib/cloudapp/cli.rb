@@ -47,10 +47,7 @@ module CloudApp
       noecho
       curs_set 0
 
-      move_status
-      status 'Loading...' do
-        @drops = Drops.new account.drops
-      end
+      status('Loading...') { @drops = Drops.new account.drops }
 
       loop do
         draw
@@ -69,11 +66,7 @@ module CloudApp
     def draw
       content = DropsRenderer.new(@drops).render
 
-      unless @drops_window
-        @drops_window = newwin content.lines.count, 0, 0, 0
-      end
-
-      move_status content.lines.count
+      @drops_window = newwin 20, 0, 0, 0 unless @drops_window
 
       werase  @drops_window
       waddstr @drops_window, content
@@ -82,21 +75,19 @@ module CloudApp
       doupdate
     end
 
-    def move_status(lines = 20)
-      unless @status_window
-        @status_window = newwin 1, 0, 0, 0
-        whline @status_window, 0, COLS()
+    def create_status
+      return if @status_window
 
-        @status = newwin 1, 0, 0, 0
-      end
-
-      mvwin @status_window, lines, 0
-      mvwin @status, lines + 1, 0
+      @status_window = newwin 1, 0, 20, 0
+      whline @status_window, 0, COLS()
       wnoutrefresh @status_window
+
+      @status = newwin 1, 0, 21, 0
       wnoutrefresh @status
     end
 
     def status(message)
+      create_status
       werase  @status
       waddstr @status, message
       wnoutrefresh @status
