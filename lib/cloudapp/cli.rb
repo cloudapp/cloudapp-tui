@@ -119,8 +119,26 @@ FILTER
       status 'filter'
       werase  @drops_window
       waddstr @drops_window, content
-      wmove   @drops_window, 0, 0
-      wrefresh @drops_window
+
+      selected = 0
+      loop do
+        wmove    @drops_window, selected, 0
+        wrefresh @drops_window
+
+        select [$stdin], nil, nil
+        case $stdin.getc
+        when ?\r then break
+        when ?j  then selected += 1
+        when ?k  then selected -= 1
+        end
+
+        selected = [ 0, [ selected, 2 ].min ].max
+      end
+
+      filter = %w( active trash all )[selected]
+      status("Loading #{ filter } drops...") {
+        @drops = Drops.new account.drops(filter: filter)
+      }
     end
 
     def clear_status
