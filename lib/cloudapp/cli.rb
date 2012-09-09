@@ -47,7 +47,7 @@ module CloudApp
       noecho
       curs_set 0
 
-      status('Loading...') { @drops = Drops.new account.drops }
+      status('Loading...') { @drops = Drops.new account.drops(limit: 10) }
 
       loop do
         draw
@@ -128,7 +128,7 @@ FILTER
 
       filter = %w( active trash all )[selected]
       status("Loading #{ filter } drops...") {
-        @drops = Drops.new account.drops(filter: filter)
+        @drops = Drops.new account.drops(filter: filter, limit: 10)
       }
     end
 
