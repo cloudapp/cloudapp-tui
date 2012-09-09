@@ -1,3 +1,11 @@
+GIT
+  remote: git://github.com/cloudapp/cloudapp.git
+  revision: d406beeb2d5adbb813effa91356bd34eb8d64cb4
+  specs:
+    cloudapp (2.0.0.beta.4)
+      leadlight (~> 0.0.7)
+      typhoeus (~> 0.3.3)
+
 PATH
   remote: .
   specs:
@@ -13,9 +21,6 @@ GEM
   specs:
     addressable (2.2.8)
     clipboard (1.0.1)
-    cloudapp (2.0.0.beta.4)
-      leadlight (~> 0.0.7)
-      typhoeus (~> 0.3.3)
     diff-lcs (1.1.3)
     fail-fast (1.0.0)
     faraday (0.8.1)
@@ -66,6 +71,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  cloudapp!
   cloudapp-cli!
   rake
   ronn
