@@ -136,6 +136,15 @@ describe CloudApp::CLI::Drops do
     end
   end
 
+  describe '#selected_line_number' do
+    let(:drops) { DropsDouble.new count: 2 }
+
+    it 'returns the given selected line number' do
+      subject = CloudApp::CLI::Drops.new drops, selected_index: 1
+      subject.selected_line_number.should eq(2)
+    end
+  end
+
   describe '#selection' do
     let(:drops) { DropsDouble.new count: 42 }
     subject { CloudApp::CLI::Drops.new drops, selected_index: 2 }

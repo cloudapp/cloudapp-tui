@@ -70,7 +70,7 @@ module CloudApp
 
       werase  @drops_window
       waddstr @drops_window, content
-      wmove   @drops_window, @drops.selected_index, 0
+      wmove   @drops_window, @drops.selected_line_number, 0
       wnoutrefresh @drops_window
       doupdate
     end
