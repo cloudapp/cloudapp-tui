@@ -20,23 +20,30 @@ three
 END
       subject.should eq(expected)
     end
+
+    context 'with a trashed drop' do
+      let(:renderables) {[ RenderableDouble.new('one', DateTime.now, 3, true) ]}
+
+      it 'marks trashed drops' do
+        trashed_drop = <<-END.chomp
+\u2716 one
+  just now, 3
+END
+        subject.should include(trashed_drop)
+      end
+    end
   end
 end
 
-RenderableDouble = Struct.new :name, :created, :views
+RenderableDouble = Struct.new :name, :created, :views, :trashed
+class RenderableDouble
+  alias_method :trashed?, :trashed
+end
 
 describe RenderableDouble do
   subject { RenderableDouble.new }
-
-  it 'has a name' do
-    subject.should respond_to(:name)
-  end
-
-  it 'has a created date' do
-    subject.should respond_to(:created)
-  end
-
-  it 'has views' do
-    subject.should respond_to(:views)
-  end
+  it { should respond_to(:name) }
+  it { should respond_to(:created) }
+  it { should respond_to(:views) }
+  it { should respond_to(:trashed?) }
 end
