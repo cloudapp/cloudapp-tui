@@ -138,8 +138,9 @@ FILTER
 
     def key(char)
       case char
-      when ?j then status('Loading...') { @drops = @drops.select_next }
-      when ?k then status('Loading...') { @drops = @drops.select_previous }
+      when ?j then @drops = @drops.select_next
+      when ?k then @drops = @drops.select_previous
+
       when ?n then status('Loading...') { @drops = @drops.next_page }
       when ?p then status('Loading...') { @drops = @drops.previous_page }
       when ?P then status('Loading...') { @drops = @drops.first_page }
