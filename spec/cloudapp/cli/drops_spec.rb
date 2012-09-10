@@ -8,6 +8,7 @@ describe CloudApp::CLI::Drops do
   subject { CloudApp::CLI::Drops.new drops }
 
   it_behaves_like 'a navigable collection'
+  it_behaves_like 'a renderable'
 
   describe '#each' do
     subject { CloudApp::CLI::Drops.new(drops) }
