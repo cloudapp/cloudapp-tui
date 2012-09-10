@@ -36,10 +36,6 @@ module CloudApp
         Drops.new @drops, selection_index: selection_index + 1
       end
 
-      def selected_line_number
-        @selection_index * 2
-      end
-
       def selection
         @drops[@selection_index]
       end

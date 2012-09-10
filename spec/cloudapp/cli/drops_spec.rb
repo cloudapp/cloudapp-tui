@@ -156,15 +156,6 @@ describe CloudApp::CLI::Drops do
     it { should be_a(CloudApp::CLI::Drops) }
     its(:selection_index) { should eq(1) }
   end
-
-  describe '#selected_line_number' do
-    let(:drops) { DropsDouble.new count: 2 }
-
-    it 'returns the given selected line number' do
-      subject = CloudApp::CLI::Drops.new drops, selection_index: 1
-      subject.selected_line_number.should eq(2)
-    end
-  end
 end
 
 class DropsDouble

@@ -14,6 +14,10 @@ module CloudApp
         }.join("\n")
       end
 
+      def selection_line_number
+        @drops.selection_index * 2
+      end
+
     private
 
       def pretty_date(date)

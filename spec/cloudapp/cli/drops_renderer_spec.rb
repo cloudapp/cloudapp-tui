@@ -1,12 +1,15 @@
 require 'helper'
+require 'support/renderables_double'
 require 'cloudapp/cli/drops_renderer'
 require 'date'
 
 describe CloudApp::CLI::DropsRenderer do
+  let(:renderables) { RenderablesDouble.new(drops) }
+  let(:drops) {[ DropDouble.new('one',   DateTime.now,     3),
+                 DropDouble.new('two',   DateTime.now - 1, 2),
+                 DropDouble.new('three', DateTime.now,     1) ]}
+
   describe '#render' do
-    let(:renderables) {[ RenderableDouble.new('one',   DateTime.now, 3),
-                         RenderableDouble.new('two',   DateTime.now - 1, 2),
-                         RenderableDouble.new('three', DateTime.now, 1) ]}
     subject { CloudApp::CLI::DropsRenderer.new(renderables).render }
 
     it 'renders each drop' do
@@ -22,7 +25,7 @@ END
     end
 
     context 'with a trashed drop' do
-      let(:renderables) {[ RenderableDouble.new('one', DateTime.now, 3, true) ]}
+      let(:drops) {[ DropDouble.new('one', DateTime.now, 3, true) ]}
 
       it 'marks trashed drops' do
         trashed_drop = <<-END.chomp
@@ -33,15 +36,26 @@ END
       end
     end
   end
+
+  describe '#selection_line_number' do
+    let(:renderables) { RenderablesDouble.new(drops, 1) }
+    subject {
+      CloudApp::CLI::DropsRenderer.new(renderables).selection_line_number
+    }
+
+    it 'returns the line number' do
+      subject.should eq(2)
+    end
+  end
 end
 
-RenderableDouble = Struct.new :name, :created, :views, :trashed
-class RenderableDouble
+DropDouble = Struct.new :name, :created, :views, :trashed
+class DropDouble
   alias_method :trashed?, :trashed
 end
 
-describe RenderableDouble do
-  subject { RenderableDouble.new }
+describe DropDouble do
+  subject { DropDouble.new }
   it { should respond_to(:name) }
   it { should respond_to(:created) }
   it { should respond_to(:views) }

@@ -2,6 +2,8 @@ require 'cloudapp'
 require 'cloudapp/cli/config'
 require 'cloudapp/cli/drops'
 require 'cloudapp/cli/drops_renderer'
+require 'cloudapp/cli/filters'
+require 'cloudapp/cli/filters_renderer'
 require 'clipboard'
 require 'highline'
 require 'ffi-ncurses'
@@ -49,7 +51,7 @@ module CloudApp
       noecho
       curs_set 0
 
-      status('Loading...') { @drops = Drops.new account.drops(limit: 10) }
+      status('Loading...') { @content = Drops.new account.drops(limit: 10) }
 
       loop do
         draw
@@ -60,19 +62,19 @@ module CloudApp
       endwin
     end
 
-    def copy(text)
-      status "Copied: #{ text }"
-      Clipboard.copy text
-    end
-
     def draw
-      content = DropsRenderer.new(@drops).render
+      renderer = case @content
+                 when CloudApp::CLI::Drops   then DropsRenderer
+                 when CloudApp::CLI::Filters then FiltersRenderer
+                 end
+
+      renderable = renderer.new @content
 
       @content_window = newwin 20, 0, 0, 0 unless @content_window
 
       werase  @content_window
-      waddstr @content_window, content
-      wmove   @content_window, @drops.selected_line_number, 0
+      waddstr @content_window, renderable.render
+      wmove   @content_window, renderable.selection_line_number, 0
       wnoutrefresh @content_window
       doupdate
     end
@@ -106,35 +108,22 @@ module CloudApp
       status ''
     end
 
+    def copy(link)
+      return unless @content.is_a? CloudApp::CLI::Drops
+      text = @content.selection.send link
+      status "Copied: #{ text }"
+      Clipboard.copy text
+    end
+
     def show_filter_options
-      content = <<-FILTER
-Active
-Trash
-All
-FILTER
+      @content = CloudApp::CLI::Filters.new
+    end
 
-      status 'filter'
-      werase  @content_window
-      waddstr @content_window, content
-
-      selected = 0
-      loop do
-        wmove    @content_window, selected, 0
-        wrefresh @content_window
-
-        select [$stdin], nil, nil
-        case $stdin.getc
-        when ?\r then break
-        when ?j  then selected += 1
-        when ?k  then selected -= 1
-        end
-
-        selected = [ 0, [ selected, 2 ].min ].max
-      end
-
-      filter = %w( active trash all )[selected]
+    def select_filter
+      return unless @content.is_a? CloudApp::CLI::Filters
+      filter = @content.selection
       status("Loading #{ filter } drops...") {
-        @drops = Drops.new account.drops(filter: filter, limit: 10)
+        @content = Drops.new account.drops(filter: filter, limit: 10)
       }
     end
 
@@ -168,17 +157,18 @@ HELP
 
     def key(char)
       case char
-      when ?j then @drops = @drops.next_selection
-      when ?k then @drops = @drops.previous_selection
+      when ?j then @content = @content.next_selection
+      when ?k then @content = @content.previous_selection
+      when ?n then status('Loading...') { @content = @content.next_page }
+      when ?p then status('Loading...') { @content = @content.previous_page }
+      when ?P then status('Loading...') { @content = @content.first_page }
 
-      when ?n then status('Loading...') { @drops = @drops.next_page }
-      when ?p then status('Loading...') { @drops = @drops.previous_page }
-      when ?P then status('Loading...') { @drops = @drops.first_page }
+      when ?c then copy(:share_url)
+      when ?C then copy(:embed_url)
+      when ?D then copy(:download_url)
+      when ?t then copy(:thumbnail_url)
 
-      when ?c then copy @drops.selection.share_url
-      when ?C then copy @drops.selection.embed_url
-      when ?D then copy @drops.selection.download_url
-      when ?t then copy @drops.selection.thumbnail_url
+      when ?\r then select_filter
 
       when ?f then show_filter_options
       when ?? then show_help
