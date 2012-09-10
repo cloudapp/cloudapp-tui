@@ -102,6 +102,10 @@ module CloudApp
       end
     end
 
+    def clear_status
+      status ''
+    end
+
     def show_filter_options
       content = <<-FILTER
 Active
@@ -134,8 +138,32 @@ FILTER
       }
     end
 
-    def clear_status
-      status ''
+    def show_help
+      content = <<-HELP
+Movement:
+  j/k   Move up/down
+  n/p   Next/previous page
+  P     Jump to the first page
+
+Copy Links:
+  c     Copy share link
+  C     Copy embed link
+  d     Copy download link
+  t     Copy thumbnail link
+
+Other:
+  f     Filter drops
+  ?     Show help
+  q     Quit
+HELP
+
+      werase   @drops_window
+      waddstr  @drops_window, content
+      wmove    @drops_window, 0, 0
+      wrefresh @drops_window
+
+      select [$stdin], nil, nil
+      $stdin.getc
     end
 
     def key(char)
@@ -153,9 +181,9 @@ FILTER
       when ?t then copy @drops.selection.thumbnail_url
 
       when ?f then show_filter_options
-      when ?? then status 'Help not implemented.'
+      when ?? then show_help
 
-      when ?q then raise SystemExit
+      when ?q then exit
       end
     end
   end
