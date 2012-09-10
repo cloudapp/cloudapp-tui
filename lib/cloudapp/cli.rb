@@ -3,7 +3,7 @@ require 'cloudapp/cli/config'
 require 'cloudapp/cli/drops'
 require 'cloudapp/cli/drops_renderer'
 require 'cloudapp/cli/filters'
-require 'cloudapp/cli/filters_renderer'
+require 'cloudapp/cli/renderer'
 require 'cloudapp/cli/help'
 require 'clipboard'
 require 'highline'
@@ -66,7 +66,7 @@ module CloudApp
     def draw
       renderer = case @content
                  when CloudApp::CLI::Drops then DropsRenderer
-                 else FiltersRenderer
+                 else Renderer
                  end
 
       renderable = renderer.new @content

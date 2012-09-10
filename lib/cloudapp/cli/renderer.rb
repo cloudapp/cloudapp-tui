@@ -1,6 +1,6 @@
 module CloudApp
   class CLI
-    class FiltersRenderer
+    class Renderer
       def initialize(filters)
         @filters = filters
       end

@@ -1,10 +1,10 @@
 require 'helper'
 require 'support/renderable_double'
-require 'cloudapp/cli/filters_renderer'
+require 'cloudapp/cli/renderer'
 
-describe CloudApp::CLI::FiltersRenderer do
+describe CloudApp::CLI::Renderer do
   let(:renderable) { RenderableDouble.new %w( one two three ), 1 }
-  subject { CloudApp::CLI::FiltersRenderer.new(renderable) }
+  subject { CloudApp::CLI::Renderer.new(renderable) }
 
   describe '#render' do
     it 'renders each filter' do
