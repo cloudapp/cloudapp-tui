@@ -1,13 +1,9 @@
-require 'forwardable'
-
 module CloudApp
   class CLI
     class Filters
       FILTERS = %w( Active Trash All )
 
       include Enumerable
-      extend  Forwardable
-      def_delegator FILTERS, :each
       attr_reader :selection_index
 
       def initialize(options = {})
@@ -15,6 +11,7 @@ module CloudApp
         @selection_index = constrain_selected_index selection_index
       end
 
+      def each(&block)    FILTERS.each &block end
       def first_page()    self end
       def previous_page() self end
       def next_page()     self end

@@ -1,17 +1,15 @@
-require 'forwardable'
-
 module CloudApp
   class CLI
     class Drops
       include Enumerable
-      extend  Forwardable
-      def_delegator :@drops, :each
-      attr_reader   :selection_index
+      attr_reader :selection_index
 
       def initialize(drops, options = {})
         @drops = drops
         @selection_index = constrain_selected_index options[:selection_index] || 0
       end
+
+      def each(&block) @drops.each &block end
 
       def first_page
         return self unless @drops.has_link?('first')
