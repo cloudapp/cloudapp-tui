@@ -1,17 +1,16 @@
 require 'helper'
+require 'navigable_collection_example'
 require 'cloudapp/cli/drops'
 
 describe CloudApp::CLI::Drops do
   let(:drops) { DropsDouble.new count: 0 }
   subject { CloudApp::CLI::Drops.new drops }
 
-  it 'is an Enumerable' do
-    subject.should be_kind_of(Enumerable)
-  end
+  it_behaves_like 'a navigable collection'
 
   it 'accepts an optional selected index' do
-    subject = CloudApp::CLI::Drops.new (0..2).to_a, selected_index: 2
-    subject.selected_index.should eq(2)
+    subject = CloudApp::CLI::Drops.new (0..2).to_a, selection_index: 2
+    subject.selection_index.should eq(2)
   end
 
   describe '#each' do
@@ -113,46 +112,62 @@ describe CloudApp::CLI::Drops do
     end
   end
 
-  describe '#selected_index' do
+  describe '#selection_index' do
     let(:drops) { DropsDouble.new count: 2 }
 
     it 'defaults to 0' do
-      subject.selected_index.should eq(0)
+      subject.selection_index.should eq(0)
     end
 
     it 'returns the given selected index' do
-      subject = CloudApp::CLI::Drops.new drops, selected_index: 1
-      subject.selected_index.should eq(1)
+      subject = CloudApp::CLI::Drops.new drops, selection_index: 1
+      subject.selection_index.should eq(1)
     end
 
     it 'maxes out at the number of drops' do
-      subject = CloudApp::CLI::Drops.new drops, selected_index: 42
-      subject.selected_index.should eq(1)
+      subject = CloudApp::CLI::Drops.new drops, selection_index: 42
+      subject.selection_index.should eq(1)
     end
 
     it 'mins out at 0' do
-      subject = CloudApp::CLI::Drops.new drops, selected_index: -42
-      subject.selected_index.should eq(0)
+      subject = CloudApp::CLI::Drops.new drops, selection_index: -42
+      subject.selection_index.should eq(0)
     end
+  end
+
+  describe '#selection' do
+    let(:drops) { DropsDouble.new count: 42 }
+    subject { CloudApp::CLI::Drops.new drops, selection_index: 2 }
+
+    it 'returns the selection' do
+      selection = :selection
+      drops.should_receive(:[]).with(2).and_return(selection)
+      subject.selection.should eq(selection)
+    end
+  end
+
+  describe '#next_selection' do
+    let(:drops) { DropsDouble.new count: 2 }
+    subject { CloudApp::CLI::Drops.new(drops).next_selection }
+
+    it { should be_a(CloudApp::CLI::Drops) }
+    its(:selection_index) { should eq(1) }
+  end
+
+  describe '#previous_selection' do
+    let(:drops) { DropsDouble.new count: 2 }
+    subject { CloudApp::CLI::Drops.new(drops, selection_index: 1).previous_selection }
+
+    it { should be_a(CloudApp::CLI::Drops) }
+    its(:selection_index) { should eq(0) }
   end
 
   describe '#selected_line_number' do
     let(:drops) { DropsDouble.new count: 2 }
 
     it 'returns the given selected line number' do
-      subject = CloudApp::CLI::Drops.new drops, selected_index: 1
+      subject = CloudApp::CLI::Drops.new drops, selection_index: 1
       subject.selected_line_number.should eq(2)
-    end
-  end
-
-  describe '#selection' do
-    let(:drops) { DropsDouble.new count: 42 }
-    subject { CloudApp::CLI::Drops.new drops, selected_index: 2 }
-
-    it 'returns the selection' do
-      selection = :selection
-      drops.should_receive(:[]).with(2).and_return(selection)
-      subject.selection.should eq(selection)
     end
   end
 end

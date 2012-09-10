@@ -6,11 +6,11 @@ module CloudApp
       include Enumerable
       extend  Forwardable
       def_delegator :@drops, :each
-      attr_reader   :selected_index
+      attr_reader   :selection_index
 
       def initialize(drops, options = {})
         @drops = drops
-        @selected_index = constrain_selected_index options[:selected_index] || 0
+        @selection_index = constrain_selected_index options[:selection_index] || 0
       end
 
       def next_page
@@ -28,26 +28,26 @@ module CloudApp
         Drops.new @drops.follow('first')
       end
 
-      def select_next
-        Drops.new @drops, selected_index: selected_index + 1
+      def next_selection
+        Drops.new @drops, selection_index: selection_index + 1
       end
 
-      def select_previous
-        Drops.new @drops, selected_index: selected_index - 1
+      def previous_selection
+        Drops.new @drops, selection_index: selection_index - 1
       end
 
       def selected_line_number
-        @selected_index * 2
+        @selection_index * 2
       end
 
       def selection
-        @drops[@selected_index]
+        @drops[@selection_index]
       end
 
     private
 
-      def constrain_selected_index(selected_index)
-        [ 0, [ selected_index, @drops.count - 1 ].min ].max
+      def constrain_selected_index(selection_index)
+        [ 0, [ selection_index, @drops.count - 1 ].min ].max
       end
     end
   end
