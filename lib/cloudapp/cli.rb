@@ -72,11 +72,10 @@ module CloudApp
 
       @content_window = newwin 20, 0, 0, 0 unless @content_window
 
-      werase  @content_window
-      waddstr @content_window, renderable.render
-      wmove   @content_window, renderable.selection_line_number, 0
-      wnoutrefresh @content_window
-      doupdate
+      werase   @content_window
+      waddstr  @content_window, renderable.render
+      wmove    @content_window, renderable.selection_line_number, 0
+      wrefresh @content_window
     end
 
     def create_status
