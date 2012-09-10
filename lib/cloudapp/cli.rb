@@ -43,6 +43,8 @@ module CloudApp
     end
 
     def start
+      require_credentials
+
       initscr
       noecho
       curs_set 0
