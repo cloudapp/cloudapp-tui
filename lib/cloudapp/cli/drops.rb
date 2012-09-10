@@ -13,9 +13,9 @@ module CloudApp
         @selection_index = constrain_selected_index options[:selection_index] || 0
       end
 
-      def next_page
-        return self unless @drops.has_link?('next')
-        Drops.new @drops.follow('next')
+      def first_page
+        return self unless @drops.has_link?('first')
+        Drops.new @drops.follow('first')
       end
 
       def previous_page
@@ -23,17 +23,17 @@ module CloudApp
         Drops.new @drops.follow('previous')
       end
 
-      def first_page
-        return self unless @drops.has_link?('first')
-        Drops.new @drops.follow('first')
-      end
-
-      def next_selection
-        Drops.new @drops, selection_index: selection_index + 1
+      def next_page
+        return self unless @drops.has_link?('next')
+        Drops.new @drops.follow('next')
       end
 
       def previous_selection
         Drops.new @drops, selection_index: selection_index - 1
+      end
+
+      def next_selection
+        Drops.new @drops, selection_index: selection_index + 1
       end
 
       def selected_line_number

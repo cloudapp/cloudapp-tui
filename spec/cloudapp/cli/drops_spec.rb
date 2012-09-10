@@ -22,32 +22,32 @@ describe CloudApp::CLI::Drops do
     end
   end
 
-  describe '#next_page' do
-    let(:drops) { DropsDouble.new follow: next_page, has_link?: true }
-    let(:next_page) { DropsDouble.new }
+  describe '#first_page' do
+    let(:drops) { DropsDouble.new follow: first_page, has_link?: true }
+    let(:first_page) { DropsDouble.new }
     subject { CloudApp::CLI::Drops.new(drops) }
 
-    it 'follows the next link' do
-      drops.should_receive(:follow).with('next').and_return(next_page)
+    it 'follows the first link' do
+      drops.should_receive(:follow).with('first').and_return(first_page)
 
       subject = CloudApp::CLI::Drops.new drops
-      subject.next_page
+      subject.first_page
     end
 
-    it 'returns the next page of drops' do
-      subject.next_page.should be_a(CloudApp::CLI::Drops)
+    it 'returns the first page of drops' do
+      subject.first_page.should be_a(CloudApp::CLI::Drops)
     end
 
-    context 'with no next page' do
-      let(:drops) { DropsDouble.new has_link?: false }
+    context 'with no first page' do
+      let(:drops) { DropsDouble.new count: 42, follow: nil, has_link?: false }
 
       it 'returns itself' do
-        subject.next_page.should eq(subject)
+        subject.first_page.should eq(subject)
       end
 
       it 'follows no links' do
         drops.should_not_receive(:follow)
-        subject.next_page.should eq(subject)
+        subject.first_page.should eq(subject)
       end
     end
   end
@@ -82,32 +82,32 @@ describe CloudApp::CLI::Drops do
     end
   end
 
-  describe '#first_page' do
-    let(:drops) { DropsDouble.new follow: first_page, has_link?: true }
-    let(:first_page) { DropsDouble.new }
+  describe '#next_page' do
+    let(:drops) { DropsDouble.new follow: next_page, has_link?: true }
+    let(:next_page) { DropsDouble.new }
     subject { CloudApp::CLI::Drops.new(drops) }
 
-    it 'follows the first link' do
-      drops.should_receive(:follow).with('first').and_return(first_page)
+    it 'follows the next link' do
+      drops.should_receive(:follow).with('next').and_return(next_page)
 
       subject = CloudApp::CLI::Drops.new drops
-      subject.first_page
+      subject.next_page
     end
 
-    it 'returns the first page of drops' do
-      subject.first_page.should be_a(CloudApp::CLI::Drops)
+    it 'returns the next page of drops' do
+      subject.next_page.should be_a(CloudApp::CLI::Drops)
     end
 
-    context 'with no first page' do
-      let(:drops) { DropsDouble.new count: 42, follow: nil, has_link?: false }
+    context 'with no next page' do
+      let(:drops) { DropsDouble.new has_link?: false }
 
       it 'returns itself' do
-        subject.first_page.should eq(subject)
+        subject.next_page.should eq(subject)
       end
 
       it 'follows no links' do
         drops.should_not_receive(:follow)
-        subject.first_page.should eq(subject)
+        subject.next_page.should eq(subject)
       end
     end
   end
@@ -146,20 +146,20 @@ describe CloudApp::CLI::Drops do
     end
   end
 
-  describe '#next_selection' do
-    let(:drops) { DropsDouble.new count: 2 }
-    subject { CloudApp::CLI::Drops.new(drops).next_selection }
-
-    it { should be_a(CloudApp::CLI::Drops) }
-    its(:selection_index) { should eq(1) }
-  end
-
   describe '#previous_selection' do
     let(:drops) { DropsDouble.new count: 2 }
     subject { CloudApp::CLI::Drops.new(drops, selection_index: 1).previous_selection }
 
     it { should be_a(CloudApp::CLI::Drops) }
     its(:selection_index) { should eq(0) }
+  end
+
+  describe '#next_selection' do
+    let(:drops) { DropsDouble.new count: 2 }
+    subject { CloudApp::CLI::Drops.new(drops).next_selection }
+
+    it { should be_a(CloudApp::CLI::Drops) }
+    its(:selection_index) { should eq(1) }
   end
 
   describe '#selected_line_number' do
