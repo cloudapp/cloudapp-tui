@@ -4,6 +4,7 @@ require 'cloudapp/cli/drops'
 require 'cloudapp/cli/drops_renderer'
 require 'cloudapp/cli/filters'
 require 'cloudapp/cli/filters_renderer'
+require 'cloudapp/cli/help'
 require 'clipboard'
 require 'highline'
 require 'ffi-ncurses'
@@ -64,8 +65,8 @@ module CloudApp
 
     def draw
       renderer = case @content
-                 when CloudApp::CLI::Drops   then DropsRenderer
-                 when CloudApp::CLI::Filters then FiltersRenderer
+                 when CloudApp::CLI::Drops then DropsRenderer
+                 else FiltersRenderer
                  end
 
       renderable = renderer.new @content
@@ -127,31 +128,7 @@ module CloudApp
     end
 
     def show_help
-      content = <<-HELP
-Movement:
-  j/k   Move up/down
-  n/p   Next/previous page
-  P     Jump to the first page
-
-Copy Links:
-  c     Copy share link
-  C     Copy embed link
-  d     Copy download link
-  t     Copy thumbnail link
-
-Other:
-  f     Filter drops
-  ?     Show help
-  q     Quit
-HELP
-
-      werase   @content_window
-      waddstr  @content_window, content
-      wmove    @content_window, 0, 0
-      wrefresh @content_window
-
-      select [$stdin], nil, nil
-      $stdin.getc
+      @content = CloudApp::CLI::Help.new
     end
 
     def key(char)

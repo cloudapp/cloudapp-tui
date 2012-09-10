@@ -1,7 +1,6 @@
 require 'helper'
 require 'support/renderable_double'
 require 'cloudapp/cli/filters_renderer'
-require 'date'
 
 describe CloudApp::CLI::FiltersRenderer do
   let(:renderable) { RenderableDouble.new %w( one two three ), 1 }
