@@ -52,7 +52,7 @@ module CloudApp
       noecho
       curs_set 0
 
-      status('Loading...') { @content = Drops.new account.drops(limit: 10) }
+      load_drops
 
       loop do
         draw
@@ -61,6 +61,13 @@ module CloudApp
       end
     ensure
       endwin
+    end
+
+    def load_drops(message = 'Loading...')
+      @filter ||= 'active'
+      status(message) {
+        @content = Drops.new account.drops(filter: @filter, limit: 10)
+      }
     end
 
     def draw
@@ -108,6 +115,20 @@ module CloudApp
       status ''
     end
 
+    def show_filter_options
+      @content = CloudApp::CLI::Filters.new
+    end
+
+    def select_filter
+      return unless @content.is_a? CloudApp::CLI::Filters
+      @filter = @content.selection
+      load_drops "Loading #{ filter } drops..."
+    end
+
+    def show_help
+      @content = CloudApp::CLI::Help.new
+    end
+
     def copy(link)
       return unless @content.is_a? CloudApp::CLI::Drops
       text = @content.selection.send link
@@ -115,20 +136,20 @@ module CloudApp
       Clipboard.copy text
     end
 
-    def show_filter_options
-      @content = CloudApp::CLI::Filters.new
-    end
-
-    def select_filter
-      return unless @content.is_a? CloudApp::CLI::Filters
-      filter = @content.selection
-      status("Loading #{ filter } drops...") {
-        @content = Drops.new account.drops(filter: filter, limit: 10)
+    def trash_selected_drop
+      return unless @content.is_a? CloudApp::CLI::Drops
+      status('Trashing...') {
+        @content.selection.trash
+        load_drops
       }
     end
 
-    def show_help
-      @content = CloudApp::CLI::Help.new
+    def recover_selected_drop
+      return unless @content.is_a? CloudApp::CLI::Drops
+      status('Restoring...') {
+        @content.selection.recover
+        load_drops
+      }
     end
 
     def key(char)
@@ -141,8 +162,11 @@ module CloudApp
 
       when ?c then copy(:share_url)
       when ?C then copy(:embed_url)
-      when ?D then copy(:download_url)
+      when ?d then copy(:download_url)
       when ?t then copy(:thumbnail_url)
+
+      when ?x then trash_selected_drop
+      when ?r then recover_selected_drop
 
       when ?\r then select_filter
 
