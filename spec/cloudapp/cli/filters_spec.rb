@@ -1,6 +1,6 @@
 require 'helper'
-require 'navigable_collection_example'
-require 'renderable_example'
+require 'support/navigable_collection_example'
+require 'support/renderable_example'
 require 'cloudapp/cli/filters'
 
 describe CloudApp::CLI::Filters do

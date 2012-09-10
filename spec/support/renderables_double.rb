@@ -1,4 +1,4 @@
-require 'renderable_example'
+require 'support/renderable_example'
 
 class RenderablesDouble
   include Enumerable

@@ -1,5 +1,6 @@
 require 'helper'
-require 'navigable_collection_example'
+require 'support/navigable_collection_example'
+require 'support/renderable_example'
 require 'cloudapp/cli/drops'
 
 describe CloudApp::CLI::Drops do
