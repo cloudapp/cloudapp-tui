@@ -68,12 +68,12 @@ module CloudApp
     def draw
       content = DropsRenderer.new(@drops).render
 
-      @drops_window = newwin 20, 0, 0, 0 unless @drops_window
+      @content_window = newwin 20, 0, 0, 0 unless @content_window
 
-      werase  @drops_window
-      waddstr @drops_window, content
-      wmove   @drops_window, @drops.selected_line_number, 0
-      wnoutrefresh @drops_window
+      werase  @content_window
+      waddstr @content_window, content
+      wmove   @content_window, @drops.selected_line_number, 0
+      wnoutrefresh @content_window
       doupdate
     end
 
@@ -114,13 +114,13 @@ All
 FILTER
 
       status 'filter'
-      werase  @drops_window
-      waddstr @drops_window, content
+      werase  @content_window
+      waddstr @content_window, content
 
       selected = 0
       loop do
-        wmove    @drops_window, selected, 0
-        wrefresh @drops_window
+        wmove    @content_window, selected, 0
+        wrefresh @content_window
 
         select [$stdin], nil, nil
         case $stdin.getc
@@ -157,10 +157,10 @@ Other:
   q     Quit
 HELP
 
-      werase   @drops_window
-      waddstr  @drops_window, content
-      wmove    @drops_window, 0, 0
-      wrefresh @drops_window
+      werase   @content_window
+      waddstr  @content_window, content
+      wmove    @content_window, 0, 0
+      wrefresh @content_window
 
       select [$stdin], nil, nil
       $stdin.getc
