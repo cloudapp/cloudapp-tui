@@ -8,11 +8,6 @@ describe CloudApp::CLI::Drops do
 
   it_behaves_like 'a navigable collection'
 
-  it 'accepts an optional selected index' do
-    subject = CloudApp::CLI::Drops.new (0..2).to_a, selection_index: 2
-    subject.selection_index.should eq(2)
-  end
-
   describe '#each' do
     subject { CloudApp::CLI::Drops.new(drops) }
 
