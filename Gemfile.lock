@@ -1,6 +1,6 @@
 GIT
   remote: git://github.com/cloudapp/cloudapp.git
-  revision: d406beeb2d5adbb813effa91356bd34eb8d64cb4
+  revision: 5289b36b55a865547bebaf7bca4774132d692268
   specs:
     cloudapp (2.0.0.beta.4)
       leadlight (~> 0.0.7)
