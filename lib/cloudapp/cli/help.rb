@@ -17,7 +17,10 @@ module CloudApp
                    'Other:',
                    '  f     Filter drops',
                    '  ?     Show help',
-                   '  q     Quit' ],
+                   '  q     Quit',
+                   'Legend:',
+                   "  !     Public",
+                   "  \u2716     Trashed" ]
 
       def each(&block)         MESSAGES.each(&block) end
       def first_page()         self end

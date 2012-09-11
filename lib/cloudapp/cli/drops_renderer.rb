@@ -7,8 +7,13 @@ module CloudApp
 
       def render
         @drops.map {|drop|
-          trashed = "\u2716 " if drop.trashed?
-          [ "#{ trashed }#{ drop.name }",
+          if drop.trashed? || !drop.private?
+            mark = ''
+            mark << "\u2716" if  drop.trashed?
+            mark << '!'      if !drop.private?
+            mark << ' '
+          end
+          [ "#{ mark }#{ drop.name }",
             "  #{ pretty_date(drop.created) }, #{ drop.views }"
           ].join("\n")
         }.join("\n")

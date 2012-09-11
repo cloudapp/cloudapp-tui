@@ -5,9 +5,9 @@ require 'date'
 
 describe CloudApp::CLI::DropsRenderer do
   let(:renderable) { RenderableDouble.new(drops) }
-  let(:drops) {[ DropDouble.new('one',   DateTime.now,     3),
-                 DropDouble.new('two',   DateTime.now - 1, 2),
-                 DropDouble.new('three', DateTime.now,     1) ]}
+  let(:drops) {[ DropDouble.new(name: 'one',   views: 3),
+                 DropDouble.new(name: 'two',   views: 2, created: DateTime.now - 1),
+                 DropDouble.new(name: 'three', views: 1) ]}
 
   describe '#render' do
     subject { CloudApp::CLI::DropsRenderer.new(renderable).render }
@@ -25,11 +25,37 @@ END
     end
 
     context 'with a trashed drop' do
-      let(:drops) {[ DropDouble.new('one', DateTime.now, 3, true) ]}
+      let(:drops) {[ DropDouble.new(name: 'one', views: 3, trashed: true) ]}
 
       it 'marks trashed drops' do
         trashed_drop = <<-END.chomp
 \u2716 one
+  just now, 3
+END
+        subject.should include(trashed_drop)
+      end
+    end
+
+    context 'with a public drop' do
+      let(:drops) {[ DropDouble.new(name: 'one', views: 3, private: false) ]}
+
+      it 'marks trashed drops' do
+        trashed_drop = <<-END.chomp
+! one
+  just now, 3
+END
+        subject.should include(trashed_drop)
+      end
+    end
+
+    context 'with a trashed, public drop' do
+      let(:drops) {[
+        DropDouble.new(name: 'one', views: 3, trashed: true, private: false)
+      ]}
+
+      it 'marks trashed drops' do
+        trashed_drop = <<-END.chomp
+\u2716! one
   just now, 3
 END
         subject.should include(trashed_drop)
@@ -51,7 +77,16 @@ end
 
 DropDouble = Struct.new :name, :created, :views, :trashed
 class DropDouble
-  alias_method :trashed?, :trashed
+  attr_reader :name, :views, :created
+  def initialize(options = {})
+    @name    = options.fetch :name, 'Drop'
+    @views   = options.fetch :views, 0
+    @created = options.fetch :created, DateTime.now
+    @trashed = options.fetch :trashed, false
+    @private = options.fetch :private, true
+  end
+  def trashed?() @trashed end
+  def private?() @private end
 end
 
 describe DropDouble do
@@ -60,4 +95,5 @@ describe DropDouble do
   it { should respond_to(:created) }
   it { should respond_to(:views) }
   it { should respond_to(:trashed?) }
+  it { should respond_to(:private?) }
 end
