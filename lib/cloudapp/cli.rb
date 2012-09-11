@@ -152,6 +152,14 @@ module CloudApp
       }
     end
 
+    def toggle_drop_privacy
+      return unless @content.is_a? CloudApp::CLI::Drops
+      status('Toggling...') {
+        @content.selection.toggle_privacy
+        load_drops
+      }
+    end
+
     def key(char)
       case char
       when ?j then @content = @content.next_selection
@@ -166,6 +174,7 @@ module CloudApp
 
       when ?# then trash_drop
       when ?r then recover_drop
+      when ?! then toggle_drop_privacy
 
       when ?f then show_filter_options
       when ?\r then select_filter

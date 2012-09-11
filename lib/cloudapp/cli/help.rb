@@ -9,6 +9,7 @@ module CloudApp
                    '',
                    "  c,C,d  Copy a drop's share/embed/download link",
                    '  #,r    Trash/recover a drop',
+                   '  !      Toggle drop privacy',
                    '  f      Filter drops',
                    '',
                    '  ?      Show help',
