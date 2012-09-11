@@ -163,16 +163,14 @@ module CloudApp
       when ?c then copy(:share_url)
       when ?C then copy(:embed_url)
       when ?d then copy(:download_url)
-      when ?t then copy(:thumbnail_url)
 
-      when ?x then trash_selected_drop
+      when ?# then trash_selected_drop
       when ?r then recover_selected_drop
 
+      when ?f then show_filter_options
       when ?\r then select_filter
 
-      when ?f then show_filter_options
       when ?? then show_help
-
       when ?q then exit
       end
     end

@@ -3,24 +3,20 @@ module CloudApp
     class Help
       include Enumerable
 
-      MESSAGES = [ 'Movement:',
-                   '  j/k   Move up/down',
-                   '  n/p   Next/previous page',
-                   '  P     Jump to the first page',
+      MESSAGES = [ 'Commands:',
+                   '  j,k    Move selection up/down',
+                   '  n,p,P  Go to the next/previous/first page',
                    '',
-                   'Copy Links:',
-                   '  c     Copy share link',
-                   '  C     Copy embed link',
-                   '  d     Copy download link',
-                   '  t     Copy thumbnail link',
+                   "  c,C,d  Copy a drop's share/embed/download link",
+                   '  #,r    Trash/recover a drop',
+                   '  f      Filter drops',
                    '',
-                   'Other:',
-                   '  f     Filter drops',
-                   '  ?     Show help',
-                   '  q     Quit',
+                   '  ?      Show help',
+                   '  q      Quit',
+                   '',
                    'Legend:',
-                   "  !     Public",
-                   "  \u2716     Trashed" ]
+                   "  !    Public",
+                   "  \u2716    Trashed" ]
 
       def each(&block)         MESSAGES.each(&block) end
       def first_page()         self end
