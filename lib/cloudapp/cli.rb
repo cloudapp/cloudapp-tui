@@ -136,7 +136,7 @@ module CloudApp
       Clipboard.copy text
     end
 
-    def trash_selected_drop
+    def trash_drop
       return unless @content.is_a? CloudApp::CLI::Drops
       status('Trashing...') {
         @content.selection.trash
@@ -144,7 +144,7 @@ module CloudApp
       }
     end
 
-    def recover_selected_drop
+    def recover_drop
       return unless @content.is_a? CloudApp::CLI::Drops
       status('Restoring...') {
         @content.selection.recover
@@ -164,8 +164,8 @@ module CloudApp
       when ?C then copy(:embed_url)
       when ?d then copy(:download_url)
 
-      when ?# then trash_selected_drop
-      when ?r then recover_selected_drop
+      when ?# then trash_drop
+      when ?r then recover_drop
 
       when ?f then show_filter_options
       when ?\r then select_filter
