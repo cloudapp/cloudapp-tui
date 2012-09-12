@@ -9,7 +9,8 @@ module CloudApp
         @selection_index = constrain_selected_index options[:selection_index] || 0
       end
 
-      def each(&block) @drops.each &block end
+      def each(&block) @drops.each(&block)      end
+      def selection()  @drops[@selection_index] end
 
       def first_page
         return self unless @drops.has_link?('first')
@@ -34,8 +35,19 @@ module CloudApp
         Drops.new @drops, selection_index: selection_index + 1
       end
 
-      def selection
-        @drops[@selection_index]
+      def trash_selection
+        selection.trash
+        Drops.new @drops.follow('self'), selection_index: selection_index
+      end
+
+      def recover_selection
+        selection.recover
+        Drops.new @drops.follow('self'), selection_index: selection_index
+      end
+
+      def toggle_selection_privacy
+        selection.toggle_privacy
+        Drops.new @drops.follow('self'), selection_index: selection_index
       end
 
     private

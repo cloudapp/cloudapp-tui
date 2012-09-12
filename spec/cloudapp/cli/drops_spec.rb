@@ -116,7 +116,7 @@ describe CloudApp::CLI::Drops do
       subject.selection_index.should eq(0)
     end
 
-    it 'returns the given selected index' do
+    it 'returns the given selection index' do
       subject = CloudApp::CLI::Drops.new drops, selection_index: 1
       subject.selection_index.should eq(1)
     end
@@ -145,7 +145,9 @@ describe CloudApp::CLI::Drops do
 
   describe '#previous_selection' do
     let(:drops) { DropsDouble.new count: 2 }
-    subject { CloudApp::CLI::Drops.new(drops, selection_index: 1).previous_selection }
+    subject {
+      CloudApp::CLI::Drops.new(drops, selection_index: 1).previous_selection
+    }
 
     it { should be_a(CloudApp::CLI::Drops) }
     its(:selection_index) { should eq(0) }
@@ -158,27 +160,95 @@ describe CloudApp::CLI::Drops do
     it { should be_a(CloudApp::CLI::Drops) }
     its(:selection_index) { should eq(1) }
   end
+
+  describe '#trash_selection' do
+    let(:drops) { DropsDouble.new count: 3, selection: selection, follow: self_page }
+    let(:selection) { DropDouble.new }
+    let(:self_page) { DropsDouble.new count: 3 }
+    subject { CloudApp::CLI::Drops.new(drops, selection_index: 1).trash_selection }
+
+    it { should be_a(CloudApp::CLI::Drops) }
+    its(:selection_index) { should eq(1) }
+
+    it 'trashes the drop' do
+      selection.should_receive(:trash).once
+      subject
+    end
+
+    it 'refreshes the same page of drops' do
+      drops.should_receive(:follow).with('self').once.and_return(self_page)
+      subject
+    end
+  end
+
+  describe '#recover_selection' do
+    let(:drops) { DropsDouble.new count: 3, selection: selection, follow: self_page }
+    let(:selection) { DropDouble.new }
+    let(:self_page) { DropsDouble.new count: 3 }
+    subject { CloudApp::CLI::Drops.new(drops, selection_index: 1).recover_selection }
+
+    it { should be_a(CloudApp::CLI::Drops) }
+    its(:selection_index) { should eq(1) }
+
+    it 'recovers the drop' do
+      selection.should_receive(:recover).once
+      subject
+    end
+
+    it 'refreshes the same page of drops' do
+      drops.should_receive(:follow).with('self').once.and_return(self_page)
+      subject
+    end
+  end
+
+  describe '#toggle_selection_privacy' do
+    let(:drops) { DropsDouble.new count: 3, selection: selection, follow: self_page }
+    let(:selection) { DropDouble.new }
+    let(:self_page) { DropsDouble.new count: 3 }
+    subject {
+      CloudApp::CLI::Drops.new(drops, selection_index: 1).
+        toggle_selection_privacy
+    }
+
+    it { should be_a(CloudApp::CLI::Drops) }
+    its(:selection_index) { should eq(1) }
+
+    it "togglees the drop's privacy" do
+      selection.should_receive(:toggle_privacy).once
+      subject
+    end
+
+    it 'refreshes the same page of drops' do
+      drops.should_receive(:follow).with('self').once.and_return(self_page)
+      subject
+    end
+  end
 end
 
 class DropsDouble
   attr_reader :count
-  def has_link?(link) @has_link end
-  def follow(link)    @follow   end
-  def [](index)       @index    end
+  def has_link?(link) @has_link  end
+  def follow(link)    @follow    end
+  def [](index)       @selection end
 
   def initialize(options = {})
-    @count    = options.fetch :count,     0
-    @follow   = options.fetch :follow,    nil
-    @has_link = options.fetch :has_link?, nil
+    @count     = options.fetch :count,     0
+    @follow    = options.fetch :follow,    nil
+    @has_link  = options.fetch :has_link?, nil
+    @selection = options.fetch :selection, nil
   end
+end
+
+class DropDouble
+  def trash() end
+  def recover() end
+  def toggle_privacy() end
 end
 
 # I like the idea of asserting that my double adheres to the defined interface,
 # but I'm not too thrilled that this particular interface is outside of my
 # control. It's the response from CloudApp::Service#drops.
 describe DropsDouble do
-  subject { DropsDouble.new }
-
   it { should respond_to(:count) }
 
   it 'responds to #follow' do
@@ -194,4 +264,10 @@ describe DropsDouble do
   it 'responds to #[]' do
     subject.should respond_to(:[])
   end
+end
+
+describe DropDouble do
+  it { should respond_to(:trash) }
+  it { should respond_to(:recover) }
+  it { should respond_to(:toggle_privacy) }
 end

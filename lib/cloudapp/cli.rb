@@ -139,24 +139,21 @@ module CloudApp
     def trash_drop
       return unless @content.is_a? CloudApp::CLI::Drops
       status('Trashing...') {
-        @content.selection.trash
-        load_drops
+        @content = @content.trash_selection
       }
     end
 
     def recover_drop
       return unless @content.is_a? CloudApp::CLI::Drops
       status('Restoring...') {
-        @content.selection.recover
-        load_drops
+        @content = @content.recover_selection
       }
     end
 
     def toggle_drop_privacy
       return unless @content.is_a? CloudApp::CLI::Drops
       status('Toggling...') {
-        @content.selection.toggle_privacy
-        load_drops
+        @content = @content.toggle_selection_privacy
       }
     end
 
