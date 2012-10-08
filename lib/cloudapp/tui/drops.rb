@@ -1,5 +1,5 @@
 module CloudApp
-  class CLI
+  class TUI
     class Drops
       include Enumerable
       attr_reader :selection_index

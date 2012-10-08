@@ -1,5 +1,5 @@
 module CloudApp
-  class CLI
+  class TUI
     class Help
       include Enumerable
 

@@ -1,4 +1,4 @@
-# CloudApp CLI
+# CloudApp TUI
 
 An experimental [CloudApp][] Text User Interface (TUI) using ncurses.
 
@@ -12,6 +12,6 @@ An experimental [CloudApp][] Text User Interface (TUI) using ncurses.
 ## Getting Started
 
 ``` bash
-gem install cloudapp-tui
+gem install cloudapp-tui --pre
 cloudapp
 ```

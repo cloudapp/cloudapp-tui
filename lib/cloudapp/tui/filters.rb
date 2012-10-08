@@ -1,5 +1,5 @@
 module CloudApp
-  class CLI
+  class TUI
     class Filters
       FILTERS = %w( Active Trash All )
 

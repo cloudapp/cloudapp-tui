@@ -1,17 +1,17 @@
 require 'helper'
 require 'support/navigable_collection_example'
 require 'support/renderable_example'
-require 'cloudapp/cli/drops'
+require 'cloudapp/tui/drops'
 
-describe CloudApp::CLI::Drops do
+describe CloudApp::TUI::Drops do
   let(:drops) { DropsDouble.new count: 0 }
-  subject { CloudApp::CLI::Drops.new drops }
+  subject { CloudApp::TUI::Drops.new drops }
 
   it_behaves_like 'a navigable collection'
   it_behaves_like 'a renderable'
 
   describe '#each' do
-    subject { CloudApp::CLI::Drops.new(drops) }
+    subject { CloudApp::TUI::Drops.new(drops) }
 
     it 'delegates to drops' do
       drops.should_receive(:each).with(no_args).and_return(:response)
@@ -22,17 +22,17 @@ describe CloudApp::CLI::Drops do
   describe '#first_page' do
     let(:drops) { DropsDouble.new follow: first_page, has_link?: true }
     let(:first_page) { DropsDouble.new }
-    subject { CloudApp::CLI::Drops.new(drops) }
+    subject { CloudApp::TUI::Drops.new(drops) }
 
     it 'follows the first link' do
       drops.should_receive(:follow).with('first').and_return(first_page)
 
-      subject = CloudApp::CLI::Drops.new drops
+      subject = CloudApp::TUI::Drops.new drops
       subject.first_page
     end
 
     it 'returns the first page of drops' do
-      subject.first_page.should be_a(CloudApp::CLI::Drops)
+      subject.first_page.should be_a(CloudApp::TUI::Drops)
     end
 
     context 'with no first page' do
@@ -52,17 +52,17 @@ describe CloudApp::CLI::Drops do
   describe '#previous_page' do
     let(:drops) { DropsDouble.new follow: previous_page, has_link?: true }
     let(:previous_page) { DropsDouble.new }
-    subject { CloudApp::CLI::Drops.new(drops) }
+    subject { CloudApp::TUI::Drops.new(drops) }
 
     it 'follows the previous link' do
       drops.should_receive(:follow).with('previous').and_return(previous_page)
 
-      subject = CloudApp::CLI::Drops.new drops
+      subject = CloudApp::TUI::Drops.new drops
       subject.previous_page
     end
 
     it 'returns the previous page of drops' do
-      subject.previous_page.should be_a(CloudApp::CLI::Drops)
+      subject.previous_page.should be_a(CloudApp::TUI::Drops)
     end
 
     context 'with no previous page' do
@@ -82,17 +82,17 @@ describe CloudApp::CLI::Drops do
   describe '#next_page' do
     let(:drops) { DropsDouble.new follow: next_page, has_link?: true }
     let(:next_page) { DropsDouble.new }
-    subject { CloudApp::CLI::Drops.new(drops) }
+    subject { CloudApp::TUI::Drops.new(drops) }
 
     it 'follows the next link' do
       drops.should_receive(:follow).with('next').and_return(next_page)
 
-      subject = CloudApp::CLI::Drops.new drops
+      subject = CloudApp::TUI::Drops.new drops
       subject.next_page
     end
 
     it 'returns the next page of drops' do
-      subject.next_page.should be_a(CloudApp::CLI::Drops)
+      subject.next_page.should be_a(CloudApp::TUI::Drops)
     end
 
     context 'with no next page' do
@@ -117,24 +117,24 @@ describe CloudApp::CLI::Drops do
     end
 
     it 'returns the given selection index' do
-      subject = CloudApp::CLI::Drops.new drops, selection_index: 1
+      subject = CloudApp::TUI::Drops.new drops, selection_index: 1
       subject.selection_index.should eq(1)
     end
 
     it 'maxes out at the number of drops' do
-      subject = CloudApp::CLI::Drops.new drops, selection_index: 42
+      subject = CloudApp::TUI::Drops.new drops, selection_index: 42
       subject.selection_index.should eq(1)
     end
 
     it 'mins out at 0' do
-      subject = CloudApp::CLI::Drops.new drops, selection_index: -42
+      subject = CloudApp::TUI::Drops.new drops, selection_index: -42
       subject.selection_index.should eq(0)
     end
   end
 
   describe '#selection' do
     let(:drops) { DropsDouble.new count: 42 }
-    subject { CloudApp::CLI::Drops.new drops, selection_index: 2 }
+    subject { CloudApp::TUI::Drops.new drops, selection_index: 2 }
 
     it 'returns the selection' do
       selection = :selection
@@ -146,18 +146,18 @@ describe CloudApp::CLI::Drops do
   describe '#previous_selection' do
     let(:drops) { DropsDouble.new count: 2 }
     subject {
-      CloudApp::CLI::Drops.new(drops, selection_index: 1).previous_selection
+      CloudApp::TUI::Drops.new(drops, selection_index: 1).previous_selection
     }
 
-    it { should be_a(CloudApp::CLI::Drops) }
+    it { should be_a(CloudApp::TUI::Drops) }
     its(:selection_index) { should eq(0) }
   end
 
   describe '#next_selection' do
     let(:drops) { DropsDouble.new count: 2 }
-    subject { CloudApp::CLI::Drops.new(drops).next_selection }
+    subject { CloudApp::TUI::Drops.new(drops).next_selection }
 
-    it { should be_a(CloudApp::CLI::Drops) }
+    it { should be_a(CloudApp::TUI::Drops) }
     its(:selection_index) { should eq(1) }
   end
 
@@ -165,9 +165,9 @@ describe CloudApp::CLI::Drops do
     let(:drops) { DropsDouble.new count: 3, selection: selection, follow: self_page }
     let(:selection) { DropDouble.new }
     let(:self_page) { DropsDouble.new count: 3 }
-    subject { CloudApp::CLI::Drops.new(drops, selection_index: 1).trash_selection }
+    subject { CloudApp::TUI::Drops.new(drops, selection_index: 1).trash_selection }
 
-    it { should be_a(CloudApp::CLI::Drops) }
+    it { should be_a(CloudApp::TUI::Drops) }
     its(:selection_index) { should eq(1) }
 
     it 'trashes the drop' do
@@ -185,9 +185,9 @@ describe CloudApp::CLI::Drops do
     let(:drops) { DropsDouble.new count: 3, selection: selection, follow: self_page }
     let(:selection) { DropDouble.new }
     let(:self_page) { DropsDouble.new count: 3 }
-    subject { CloudApp::CLI::Drops.new(drops, selection_index: 1).recover_selection }
+    subject { CloudApp::TUI::Drops.new(drops, selection_index: 1).recover_selection }
 
-    it { should be_a(CloudApp::CLI::Drops) }
+    it { should be_a(CloudApp::TUI::Drops) }
     its(:selection_index) { should eq(1) }
 
     it 'recovers the drop' do
@@ -206,11 +206,11 @@ describe CloudApp::CLI::Drops do
     let(:selection) { DropDouble.new }
     let(:self_page) { DropsDouble.new count: 3 }
     subject {
-      CloudApp::CLI::Drops.new(drops, selection_index: 1).
+      CloudApp::TUI::Drops.new(drops, selection_index: 1).
         toggle_selection_privacy
     }
 
-    it { should be_a(CloudApp::CLI::Drops) }
+    it { should be_a(CloudApp::TUI::Drops) }
     its(:selection_index) { should eq(1) }
 
     it "togglees the drop's privacy" do

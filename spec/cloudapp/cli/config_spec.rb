@@ -1,9 +1,9 @@
 require 'helper'
 require 'tempfile'
 
-require 'cloudapp/cli/config'
+require 'cloudapp/tui/config'
 
-describe CloudApp::CLI::Config do
+describe CloudApp::TUI::Config do
   let(:config)      { {} }
   let(:content)     { YAML.dump(config) }
   let(:path)        { config_file.path }
@@ -18,7 +18,7 @@ describe CloudApp::CLI::Config do
   after do config_file.unlink end
 
   describe '#new' do
-    subject { CloudApp::CLI::Config.new path }
+    subject { CloudApp::TUI::Config.new path }
 
     describe 'an existing config file' do
       let(:config) {{ token: 'token' }}

@@ -1,10 +1,10 @@
 require 'helper'
 require 'support/navigable_collection_example'
 require 'support/renderable_example'
-require 'cloudapp/cli/help'
+require 'cloudapp/tui/help'
 
-describe CloudApp::CLI::Help do
-  subject { CloudApp::CLI::Help.new }
+describe CloudApp::TUI::Help do
+  subject { CloudApp::TUI::Help.new }
 
   it_behaves_like 'a navigable collection'
   it_behaves_like 'a renderable'
@@ -17,7 +17,7 @@ describe CloudApp::CLI::Help do
   its(:previous_selection) { should equal(subject) }
 
   describe '#each' do
-    subject { CloudApp::CLI::Help.new.to_a }
+    subject { CloudApp::TUI::Help.new.to_a }
     it 'iterates each message' do
       subject.should_not be_empty
     end

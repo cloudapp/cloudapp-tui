@@ -1,17 +1,17 @@
 require 'cloudapp'
-require 'cloudapp/cli/config'
-require 'cloudapp/cli/drops'
-require 'cloudapp/cli/drops_renderer'
-require 'cloudapp/cli/filters'
-require 'cloudapp/cli/renderer'
-require 'cloudapp/cli/help'
+require 'cloudapp/tui/config'
+require 'cloudapp/tui/drops'
+require 'cloudapp/tui/drops_renderer'
+require 'cloudapp/tui/filters'
+require 'cloudapp/tui/renderer'
+require 'cloudapp/tui/help'
 require 'clipboard'
 require 'highline'
 require 'ffi-ncurses'
 
 module CloudApp
-  class CLI
-    VERSION = '1.0.0.beta.6'
+  class TUI
+    VERSION = '1.0.0.beta.1'
 
     include FFI::NCurses
 
@@ -23,7 +23,7 @@ module CloudApp
     end
 
     def config
-      CloudApp::CLI::Config.new
+      CloudApp::TUI::Config.new
     end
 
     def account
@@ -72,7 +72,7 @@ module CloudApp
 
     def draw
       renderer = case @content
-                 when CloudApp::CLI::Drops then DropsRenderer
+                 when CloudApp::TUI::Drops then DropsRenderer
                  else Renderer
                  end
 
@@ -116,42 +116,42 @@ module CloudApp
     end
 
     def show_filter_options
-      @content = CloudApp::CLI::Filters.new
+      @content = CloudApp::TUI::Filters.new
     end
 
     def select_filter
-      return unless @content.is_a? CloudApp::CLI::Filters
+      return unless @content.is_a? CloudApp::TUI::Filters
       @filter = @content.selection
       load_drops "Loading #{ filter } drops..."
     end
 
     def show_help
-      @content = CloudApp::CLI::Help.new
+      @content = CloudApp::TUI::Help.new
     end
 
     def copy(link)
-      return unless @content.is_a? CloudApp::CLI::Drops
+      return unless @content.is_a? CloudApp::TUI::Drops
       text = @content.selection.send link
       status "Copied: #{ text }"
       Clipboard.copy text
     end
 
     def trash_drop
-      return unless @content.is_a? CloudApp::CLI::Drops
+      return unless @content.is_a? CloudApp::TUI::Drops
       status('Trashing...') {
         @content = @content.trash_selection
       }
     end
 
     def recover_drop
-      return unless @content.is_a? CloudApp::CLI::Drops
+      return unless @content.is_a? CloudApp::TUI::Drops
       status('Restoring...') {
         @content = @content.recover_selection
       }
     end
 
     def toggle_drop_privacy
-      return unless @content.is_a? CloudApp::CLI::Drops
+      return unless @content.is_a? CloudApp::TUI::Drops
       status('Toggling...') {
         @content = @content.toggle_selection_privacy
       }

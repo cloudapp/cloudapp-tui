@@ -12,22 +12,22 @@ Gem::Specification.new do |s|
   ## Leave these as is they will be modified for you by the rake gemspec task.
   ## If your rubyforge_project name is different, then edit it and comment out
   ## the sub! line in the Rakefile
-  s.name              = 'cloudapp-cli'
-  s.version           = '1.0.0.beta.6'
-  s.date              = '2012-08-20'
-  s.rubyforge_project = 'cloudapp-cli'
+  s.name              = 'cloudapp-tui'
+  s.version           = '1.0.0.beta.1'
+  s.date              = '2012-10-08'
+  s.rubyforge_project = 'cloudapp-tui'
 
   ## Make sure your summary is short. The description may be as long
   ## as you like.
-  s.summary     = "CloudApp CLI"
-  s.description = "Experience all the pleasures of sharing with CloudApp now in your terminal."
+  s.summary     = "CloudApp TUI"
+  s.description = "Experimental text user interface for CloudApp using ncurses."
 
   ## List the primary authors. If there are a bunch of authors, it's probably
   ## better to set the email to an email list or something. If you don't have
   ## a custom homepage, consider using your GitHub URL or the like.
   s.authors  = ["Larry Marburger"]
   s.email    = 'larry@marburger.cc'
-  s.homepage = 'https://github.com/cloudapp/cloudapp-cli'
+  s.homepage = 'https://github.com/cloudapp/cloudapp-tui'
 
   ## This gets added to the $LOAD_PATH so that 'lib/NAME.rb' can be required as
   ## require 'NAME.rb' or'/lib/NAME/file.rb' can be as require 'NAME/file.rb'
@@ -43,7 +43,7 @@ Gem::Specification.new do |s|
 
   ## List your runtime dependencies here. Runtime dependencies are those
   ## that are needed for an end user to actually USE your code.
-  s.add_dependency 'cloudapp', '~> 2.0.0.beta.3'
+  s.add_dependency 'cloudapp-service', '~> 1.0.0.beta.1'
   s.add_dependency 'clipboard'
   s.add_dependency 'ffi-ncurses'
   s.add_dependency 'highline'
@@ -63,18 +63,30 @@ Gem::Specification.new do |s|
   ## THE MANIFEST COMMENTS, they are used as delimiters by the task.
   # = MANIFEST =
   s.files = %w[
-    CHANGELOG.md
     Gemfile
     Gemfile.lock
     MIT-LICENSE
     README.md
     Rakefile
     bin/cloudapp
-    cloudapp-cli.gemspec
-    lib/cloudapp/cli.rb
-    lib/cloudapp/cli/config.rb
+    cloudapp-tui.gemspec
+    lib/cloudapp/tui.rb
+    lib/cloudapp/tui/config.rb
+    lib/cloudapp/tui/drops.rb
+    lib/cloudapp/tui/drops_renderer.rb
+    lib/cloudapp/tui/filters.rb
+    lib/cloudapp/tui/help.rb
+    lib/cloudapp/tui/renderer.rb
     spec/cloudapp/cli/config_spec.rb
+    spec/cloudapp/cli/drops_renderer_spec.rb
+    spec/cloudapp/cli/drops_spec.rb
+    spec/cloudapp/cli/filters_spec.rb
+    spec/cloudapp/cli/help_spec.rb
+    spec/cloudapp/cli/renderer_spec.rb
     spec/helper.rb
+    spec/support/navigable_collection_example.rb
+    spec/support/renderable_double.rb
+    spec/support/renderable_example.rb
   ]
   # = MANIFEST =
 

@@ -1,16 +1,16 @@
 require 'helper'
 require 'support/renderable_double'
-require 'cloudapp/cli/drops_renderer'
+require 'cloudapp/tui/drops_renderer'
 require 'date'
 
-describe CloudApp::CLI::DropsRenderer do
+describe CloudApp::TUI::DropsRenderer do
   let(:renderable) { RenderableDouble.new(drops) }
   let(:drops) {[ DropDouble.new(name: 'one',   views: 3),
                  DropDouble.new(name: 'two',   views: 2, created: DateTime.now - 1),
                  DropDouble.new(name: 'three', views: 1) ]}
 
   describe '#render' do
-    subject { CloudApp::CLI::DropsRenderer.new(renderable).render }
+    subject { CloudApp::TUI::DropsRenderer.new(renderable).render }
 
     it 'renders each drop' do
       expected = <<-END.chomp
@@ -66,7 +66,7 @@ END
   describe '#selection_line_number' do
     let(:renderable) { RenderableDouble.new(drops, 1) }
     subject {
-      CloudApp::CLI::DropsRenderer.new(renderable).selection_line_number
+      CloudApp::TUI::DropsRenderer.new(renderable).selection_line_number
     }
 
     it 'returns the line number' do

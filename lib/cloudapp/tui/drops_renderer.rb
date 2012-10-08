@@ -1,5 +1,5 @@
 module CloudApp
-  class CLI
+  class TUI
     class DropsRenderer
       def initialize(drops)
         @drops = drops
